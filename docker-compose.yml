@@ -1,0 +1,23 @@
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/ttriplej
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ttriplej
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
