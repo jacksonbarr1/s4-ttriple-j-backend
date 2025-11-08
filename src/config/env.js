@@ -14,6 +14,9 @@ const ENV = {
   db: {
     uri: process.env.MONGODB_URI || "mongodb://mongo:27017/ttriplej",
   },
+  security: {
+    jwtSecret: process.env.JWT_SECRET,
+  },
 };
 
 module.exports = ENV;
