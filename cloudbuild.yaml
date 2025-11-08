@@ -30,6 +30,6 @@ steps:
   - 'managed'
   - '--allow-unauthenticated'
   - '--set-secrets'
-  - 'MONGODB_URI=projects/$PROJECT_ID/secrets/MONGODB_URI:latest'
+  - 'MONGODB_URI=projects/1078260948749/secrets/MONGODB_URI'
 images:
  - 'us-east1-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA'
