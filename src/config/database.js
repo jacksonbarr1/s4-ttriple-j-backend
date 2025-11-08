@@ -4,6 +4,7 @@ const ENV = require("./env");
 const connectDB = async () => {
   try {
     await mongoose.connect(ENV.db.uri, {});
+    await mongoose.connection.db.admin().command({ ping: 1 });
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
