@@ -2,6 +2,8 @@ substitutions:
   _REGION: "us-east1"
   _SERVICE: "ttriplej"
   _REPO: "my-repo"          # artifact registry repo (or skip for gcr)
+options:
+  logging: CLOUD_LOGGING_ONLY
 steps:
 # Build the image and push to Artifact Registry
 - name: 'gcr.io/cloud-builders/docker'
