@@ -30,10 +30,12 @@ const createBand = async (req, res, next) => {
 };
 
 const BandFilterMetrics = require("../models/bandFilterMetrics.model");
+const ABTestMetric = require("../models/abTestMetric.model");
 
 const listBands = async (req, res, next) => {
   try {
-    const { sortStrategy = "timePosted", search } = req.query;
+    const rawSortStrategy = req.query.sortStrategy; // undefined when client didn't send
+    const search = req.query.search;
     const filters = {};
     if (req.query.genres) {
       const arr = req.query.genres.split(",").map((s) => s.trim()).filter(Boolean);
@@ -54,37 +56,82 @@ const listBands = async (req, res, next) => {
       filters.name = { $regex: search, $options: "i" };
     }
 
-    // cap
+  // cap
     const MAX_RESULTS = 1000;
 
     let bands = [];
 
+    // If the client did NOT explicitly provide a sortStrategy, treat this as
+    // the user's first "explore" call.  Assign a persistent A/B group (50/50)
+    // on the user document if they don't already have one. Group mapping:
+    // - A => default sort 'nearest'
+    // - B => default sort 'timePosted'
+    // NOTE: we only persist for authenticated users (route uses authenticate middleware).
+    let sortStrategy = rawSortStrategy || 'timePosted';
+    if (rawSortStrategy === undefined && req.user) {
+      try {
+        const user = req.user;
+        if (!user.experiment || user.experiment.name !== 'explore_default_sort') {
+          // assign 50/50
+          const group = Math.random() < 0.5 ? 'A' : 'B';
+          const experiment = { name: 'explore_default_sort', group, assignedAt: new Date() };
+          // persist to DB
+          await User.findByIdAndUpdate(user._id || user.id, { experiment }, { new: true }).exec();
+          // record assignment event
+          try {
+            await ABTestMetric.create({ user: user._id || user.id, group, eventType: 'assignment', details: { assignedTo: group } });
+          } catch (e) {
+            console.error('Failed to record AB assignment metric', e);
+          }
+          // apply assigned default
+          sortStrategy = group === 'A' ? 'nearest' : 'timePosted';
+        } else {
+          // already assigned
+          const group = user.experiment.group;
+          sortStrategy = group === 'A' ? 'nearest' : 'timePosted';
+        }
+      } catch (err) {
+        // don't block the request for assignment failures; fall back to timePosted
+        console.error('Failed to assign AB experiment for user', err);
+        sortStrategy = 'timePosted';
+      }
+    }
+
+    if (sortStrategy === 'nearest') {
+      const user = req.user;
+      // If user lacks coords, gracefully fall back to timePosted instead of failing.
+      if (!user || !user.location || !user.location.coordinates) {
+        sortStrategy = 'timePosted';
+      }
+    }
+
     if (sortStrategy === "nearest") {
       const user = req.user;
-      if (!user || !user.location || !user.location.coordinates) {
-        return res.status(400).json({ error: "User location required for nearest sorting" });
-      }
       // support both shapes: either coordinates is an array [lng,lat] or an object { type, coordinates: [...] }
       const coordsField = user.location.coordinates;
       const coordsArray = Array.isArray(coordsField) ? coordsField : (coordsField && coordsField.coordinates);
       if (!Array.isArray(coordsArray) || coordsArray.length < 2) {
-        return res.status(400).json({ error: "User location required for nearest sorting" });
+        // fallback to timePosted if coords are invalid
+        sortStrategy = 'timePosted';
+      } else {
+        const [lng, lat] = coordsArray;
+
+        const geoNearStage = {
+          $geoNear: {
+            near: { type: "Point", coordinates: [lng, lat] },
+            distanceField: "distanceMeters",
+            spherical: true,
+            query: filters,
+          },
+        };
+
+        const pipeline = [geoNearStage, { $limit: MAX_RESULTS }];
+
+        bands = await Band.aggregate(pipeline).exec();
       }
-      const [lng, lat] = coordsArray;
+    }
 
-      const geoNearStage = {
-        $geoNear: {
-          near: { type: "Point", coordinates: [lng, lat] },
-          distanceField: "distanceMeters",
-          spherical: true,
-          query: filters,
-        },
-      };
-
-      const pipeline = [geoNearStage, { $limit: MAX_RESULTS }];
-
-      bands = await Band.aggregate(pipeline).exec();
-    } else {
+    if (sortStrategy !== 'nearest') {
       bands = await Band.find(filters).sort({ createdAt: -1 }).limit(MAX_RESULTS).exec();
     }
 

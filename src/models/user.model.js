@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     location: { type: locationSchema, required: true },
+    experiment: {
+      name: { type: String },
+      group: { type: String, enum: ['A', 'B'] },
+      assignedAt: { type: Date },
+    },
   },
   {
     timestamps: true,

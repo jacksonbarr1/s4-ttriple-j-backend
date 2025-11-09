@@ -274,5 +274,55 @@ Example successful response (truncated):
 }
 ```
 
+## A/B testing: explore default sort (frontend integration)
+
+High-level behavior
+- When the frontend calls `GET /api/bands` without a `sortStrategy` parameter, the server treats that as an "explore" call. If the user does not already have an assigned experiment, the server assigns them to group A or B (50/50) and persists the assignment on the user document under `user.experiment` (object with `name`, `group`, `assignedAt`). The server also records an assignment event in the `ABTestMetric` collection.
+- Group mapping used by the server (default):
+  - Group A -> default sort `nearest`
+  - Group B -> default sort `timePosted`
+- If the client explicitly sends `?sortStrategy=nearest` or `?sortStrategy=timePosted`, the server will honor that explicit request and not reassign the user.
+  - This represents the situation where a user loaded the explore page with the default strategy, and then specifically switched to a different strategy
+
+Endpoints for A/B event recording
+- POST /api/experiments/record (authenticated)
+  - Body: `{ "eventType": string, "details"?: object }`
+  - Allowed `eventType` values: `assignment`, `switch_sort`, `scrolls_before_match`, `booking`.
+  - The server will save an `ABTestMetric` document with `user`, `group` (from `req.user.experiment` if present), `eventType`, and `details`.
+
+Recommended frontend integration
+1) Initial explore load:
+   - Call `GET /api/bands` without `sortStrategy` (and include the Authorization header). This triggers assignment for first-time users and returns bands sorted by the effective strategy for that user. Use the returned list and any included `distanceMeters` field (present when `nearest` is used).
+
+   Example (fetch):
+
+   ```js
+   const res = await fetch('/api/bands', {
+     headers: { Authorization: `Bearer ${token}` }
+   });
+   const { bands } = await res.json();
+   // render bands
+   ```
+
+2) User switches sorting in the UI:
+   - If the user toggles the sort strategy in the UI (e.g. from nearest to timePosted), call the experiments record endpoint to log the action. This helps measure interaction ratio by sorting strategy.
+
+   Example payload (switch_sort):
+   ```json
+   { "eventType": "switch_sort", "details": { "from": "nearest", "to": "timePosted" } }
+   ```
+
+3) Track scrolls before match:
+   - When a user finds a band they want to contact/book (or triggers whatever you define as a match), send `scrolls_before_match` with the number of times the user scrolled (or pages viewed) before arriving at that match.
+
+   Example payload:
+   ```json
+   { "eventType": "scrolls_before_match", "details": { "scrolls": 7, "matchedBandId": "690fe00360c6a023bb73a082" } }
+   ```
+
+4) Booking events:
+   - When the user books/contacts a band, send `booking` events with relevant details.
+
+
 
 
