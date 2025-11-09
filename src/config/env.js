@@ -17,6 +17,12 @@ const ENV = {
   security: {
     jwtSecret: process.env.JWT_SECRET,
   },
+  services: {
+    geocoding: {
+      enabled: process.env.GEOCODING_ENABLED === "true",
+      apiKey: process.env.OPENCAGE_API_KEY || null,
+    },
+  },
 };
 
 module.exports = ENV;
