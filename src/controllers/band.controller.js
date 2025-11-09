@@ -15,9 +15,10 @@ const populateBandPayload = (payload) => {
 
 const createBand = async (req, res, next) => {
   try {
-    const payload = populateBandPayload({ ...req.body });
-    payload.owner = req.user.id;
-    payload.members = [req.user.id];
+  const payload = populateBandPayload({ ...req.body });
+  const userId = (req.user && (req.user._id || req.user.id)) || null;
+  payload.owner = userId;
+  payload.members = userId ? [userId] : [];
 
     payload.location = await normalizeLocation(payload.location);
 
@@ -63,7 +64,13 @@ const listBands = async (req, res, next) => {
       if (!user || !user.location || !user.location.coordinates) {
         return res.status(400).json({ error: "User location required for nearest sorting" });
       }
-      const [lng, lat] = user.location.coordinates.coordinates;
+      // support both shapes: either coordinates is an array [lng,lat] or an object { type, coordinates: [...] }
+      const coordsField = user.location.coordinates;
+      const coordsArray = Array.isArray(coordsField) ? coordsField : (coordsField && coordsField.coordinates);
+      if (!Array.isArray(coordsArray) || coordsArray.length < 2) {
+        return res.status(400).json({ error: "User location required for nearest sorting" });
+      }
+      const [lng, lat] = coordsArray;
 
       const geoNearStage = {
         $geoNear: {
