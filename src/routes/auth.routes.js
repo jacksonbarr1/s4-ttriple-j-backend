@@ -6,12 +6,25 @@ const { authenticate } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
+const locationValidators = [
+  body("location.city").isString().notEmpty(),
+  body("location.state").isString().notEmpty(),
+  body("location.country").isString().notEmpty(),
+  body("location.coordinates")
+    .optional()
+    .isArray({ min: 2, max: 2 })
+    .custom((value) => {
+      return value.every((coord) => typeof coord === "number");
+    }),
+];
+
 router.post(
   "/register",
   [
     body("email").isEmail(),
     body("username").isLength({ min: 3, max: 30 }),
     body("password").isLength({ min: 6 }),
+    ...locationValidators,
   ],
   validate,
   authController.register,
