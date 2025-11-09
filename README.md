@@ -13,7 +13,12 @@ Expected request body (example):
 {
   "email": "user@gmail.com",
   "username": "username", 
-  "password": "password"
+  "password": "password",
+    "location": {
+    "city": "Atlanta",
+    "state": "Georgia",
+    "country": "USA"
+  },
 }
 ```
 - All fields are required
@@ -21,11 +26,23 @@ Expected request body (example):
 Successful response structure:
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGZlMTk3NDBiZGFiNTY3ZmIxNWRmZiIsImVtYWlsIjoiamFja3NvbmJhMDIxQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiamFja3NvbmFyciIsImlhdCI6MTc2MjY0ODQ3MSwiZXhwIjoxNzYzMjUzMjcxfQ.KH3HrYg5Ckg2ZF846ex6QA6anHazNpetrEfTRgfqFjA",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGZmNWVmMzEwMzhkYzIwM2E2YTBkMyIsImVtYWlsIjoiamFja3NvbmJhMjFAZ21haWwuY29tIiwidXNlcm5hbWUiOiJqYWNrc29hcnIiLCJpYXQiOjE3NjI2NTM2NzksImV4cCI6MTc2MzI1ODQ3OX0.CLdxVWX_pSkGvbeQ9vaEjVpw9L4FM26hhmX_xGH4X9E",
   "user": {
-    "id": "690fe19740bdab567fb15dff",
+    "id": "690ff5ef31038dc203a6a0d3",
     "email": "user@gmail.com",
-    "username": "username"
+    "username": "username",
+    "location": {
+      "city": "Atlanta",
+      "state": "Georgia",
+      "country": "USA",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [
+          -84.3898151,
+          33.7544657
+        ]
+      }
+    }
   }
 }
 ```
@@ -43,11 +60,23 @@ Successful response structure:
 Successful response structure:
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGY5ZTE0YmZjNjcyMmYyOWE1ZjY4NCIsImVtYWlsIjoiamFja3NvbmJhcnIyMDIxQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiamFja3NvbmJhcnIiLCJpYXQiOjE3NjI2NDg2MjEsImV4cCI6MTc2MzI1MzQyMX0.E0mdD1UZkNHNKCu-u6LfLa0zSQWpSWBlyF_7LpDwNb0",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MGZmNWVmMzEwMzhkYzIwM2E2YTBkMyIsImVtYWlsIjoiamFja3NvbmJhMjFAZ21haWwuY29tIiwidXNlcm5hbWUiOiJqYWNrc29hcnIiLCJpYXQiOjE3NjI2NTM2NzksImV4cCI6MTc2MzI1ODQ3OX0.CLdxVWX_pSkGvbeQ9vaEjVpw9L4FM26hhmX_xGH4X9E",
   "user": {
-    "id": "690f9e14bfc6722f29a5f684",
+    "id": "690ff5ef31038dc203a6a0d3",
     "email": "user@gmail.com",
-    "username": "username"
+    "username": "username",
+    "location": {
+      "city": "Atlanta",
+      "state": "Georgia",
+      "country": "USA",
+      "coordinates": {
+        "type": "Point",
+        "coordinates": [
+          -84.3898151,
+          33.7544657
+        ]
+      }
+    }
   }
 }
 ```

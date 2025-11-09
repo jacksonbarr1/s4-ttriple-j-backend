@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const ENV = require("../config/env");
+const { normalizeLocation } = require("../utils/location");
 
 const buildToken = (user) => {
   return jwt.sign(
@@ -17,7 +18,7 @@ const buildToken = (user) => {
 
 const register = async (req, res, next) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, password, location } = req.body;
 
     const existingUser = await User.findOne({
       $or: [
@@ -32,10 +33,13 @@ const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const loc = await normalizeLocation(location);
+
     const user = await User.create({
       email: email.toLowerCase(),
       username: username.toLowerCase(),
       password: hashedPassword,
+      location: loc,
     });
 
     const token = buildToken(user);
@@ -46,6 +50,7 @@ const register = async (req, res, next) => {
         id: user._id,
         email: user.email,
         username: user.username,
+        location: user.location,
       },
     });
   } catch (error) {
@@ -80,6 +85,7 @@ const login = async (req, res, next) => {
         id: user._id,
         email: user.email,
         username: user.username,
+        location: user.location,
       },
     });
   } catch (error) {
