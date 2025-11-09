@@ -19,7 +19,7 @@ const ENV = {
   },
   services: {
     geocoding: {
-      enabled: process.env.GEOCODING_ENABLED === "true",
+      enabled: true,
       apiKey: process.env.OPENCAGE_API_KEY || null,
     },
   },
