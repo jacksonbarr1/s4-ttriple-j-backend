@@ -32,18 +32,20 @@ router.post(
   bandController.createBand,
 );
 
-// router.get(
-//   "/",
-//   authenticate,
-//   [
-//     query("page").optional().isInt({ min: 1 }),
-//     query("limit").optional().isInt({ min: 1, max: 100 }),
-//     query("owner").optional().isBoolean(),
-//     query("search").optional().isString(),
-//   ],
-//   validate,
-//   bandController.listBands,
-// );
+router.get(
+  "/",
+  authenticate,
+  [
+    query("sortStrategy").optional().isIn(["nearest", "timePosted"]),
+    query("genres").optional().isString(),
+    query("tags").optional().isString(),
+    query("experienceLevel").optional().isIn(["beginner", "intermediate", "professional"]),
+    query("owner").optional().isMongoId(),
+    query("search").optional().isString(),
+  ],
+  validate,
+  bandController.listBands,
+);
 //
 // router.get(
 //   "/:id",

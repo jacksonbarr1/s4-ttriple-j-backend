@@ -224,3 +224,55 @@ Expected response structure:
 
 
 
+### List Bands
+
+- Lists bands and supports filtering and sorting. Requires authentication (JWT in Authorization header).
+
+`GET /api/bands`
+
+Query parameters (all optional):
+
+- `sortStrategy` - `timePosted` (default) or `nearest`. When `nearest` is used the authenticated user's stored location `user.location.coordinates` is required and results are sorted by ascending distance. Each returned band will include a numeric `distanceMeters` field when `nearest` is used.
+- `genres` - comma-separated list of genres (e.g. `genres=Rock,Grunge`). Matches bands that have any of the listed genres.
+- `tags` - comma-separated list of tags (e.g. `tags=Emo,Cover`). Matches bands that have any of the listed tags.
+- `experienceLevel` - one of `beginner`, `intermediate`, `professional`.
+- `owner` - a MongoDB user id to filter by owner (we can use this for booking requests later probably)
+- `search` - simple case-insensitive substring search against the band `name`.
+
+Notes:
+
+- Filters are ANDed together. For example `genres=Rock&experienceLevel=intermediate` returns bands that match both conditions.
+
+Example requests:
+
+`GET /api/bands` (most recent first)
+
+`GET /api/bands?genres=Rock&experienceLevel=intermediate&sortStrategy=timePosted`
+
+`GET /api/bands?sortStrategy=nearest` (authenticated user required)
+
+Example successful response (truncated):
+
+```json
+{
+  "bands": [
+    {
+      "_id": "690fe00360c6a023bb73a082",
+      "name": "Jackson's band",
+      "location": {
+        "city": "Atlanta",
+        "state": "Georgia",
+        "country": "USA",
+        "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] }
+      },
+      "experienceLevel": "intermediate",
+      "headerImages": ["https://storage.googleapis.com/..."],
+      "distanceMeters": 1234.56, // present only when sortStrategy=nearest
+      "createdAt": "2025-11-09T00:27:47.771Z"
+    }
+  ]
+}
+```
+
+
+
