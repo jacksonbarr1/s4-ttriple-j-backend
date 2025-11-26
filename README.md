@@ -274,6 +274,142 @@ Example successful response (truncated):
 }
 ```
 
+### Get Event by ID
+
+- Retrieve a single event by its MongoDB id. Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`GET /api/events/:id`
+
+Path parameters:
+
+- `id` - MongoDB ObjectId of the event
+
+Example request:
+
+`GET /api/events/6910abcd1234ef567890ab12`
+
+Example successful response:
+
+```json
+{
+  "event": {
+    "_id": "6910abcd1234ef567890ab12",
+    "name": "Neighborhood Block Party",
+    "eventDate": { "start": "2025-12-01T18:00:00.000Z", "end": "2025-12-01T22:00:00.000Z" },
+    "location": { "city": "Atlanta", "state": "Georgia", "country": "USA", "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] } },
+    "compensation": 150,
+    "requirements": ["mic", "stage"],
+    "equipmentProvided": ["pa", "lighting"],
+    "contactInfo": { "email": "organizer@example.com", "phone": "555-123-4567" },
+    "owner": "690f9e14bfc6722f29a5f684",
+    "createdAt": "2025-11-26T12:00:00.000Z"
+  }
+}
+```
+
+## Events
+### Create Event
+
+- Use this endpoint when creating a new event (organizer/host creates an event).
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+`POST /api/events/`
+
+Expected Request Structure:
+```json
+{
+  "name": "Neighborhood Block Party",
+  "description": "An evening of live music and food",
+  "image": "https://storage.googleapis.com/...",
+  "capacity": "200",
+  "compensation": 150.0,
+  "eventDate": { "start": "2025-12-01T18:00:00.000Z", "end": "2025-12-01T22:00:00.000Z" },
+  "location": { "city": "Atlanta", "state": "Georgia", "country": "USA" },
+  "requirements": ["mic", "stage"],
+  "equipmentProvided": ["PA", "lighting"],
+  "contactInfo": { "email": "organizer@example.com", "phone": "555-123-4567" }
+}
+```
+- Required fields
+  - `name`
+  - `location`
+  - `eventDate` (start and end)
+  - `contactInfo`
+
+Expected response structure:
+```json
+{
+  "event": {
+    "_id": "6910abcd1234ef567890ab12",
+    "name": "Neighborhood Block Party",
+    "description": "An evening of live music and food",
+    "image": "https://storage.googleapis.com/...",
+    "capacity": "200",
+    "compensation": 150,
+    "eventDate": { "start": "2025-12-01T18:00:00.000Z", "end": "2025-12-01T22:00:00.000Z" },
+    "location": {
+      "city": "Atlanta",
+      "state": "Georgia",
+      "country": "USA",
+      "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] }
+    },
+    "requirements": ["mic", "stage"],
+    "equipmentProvided": ["pa", "lighting"],
+    "contactInfo": { "email": "organizer@example.com", "phone": "555-123-4567" },
+    "owner": "690f9e14bfc6722f29a5f684",
+    "createdAt": "2025-11-26T12:00:00.000Z"
+  }
+}
+```
+
+
+### List Events
+
+- Lists events and supports filtering and sorting. Requires authentication (JWT in Authorization header).
+
+`GET /api/events`
+
+Query parameters (all optional):
+
+- `sortStrategy` - one of:
+  - `timePosted` (default) — most recent first
+  - `nearest` — requires authenticated user's `user.location.coordinates`; returns `distanceMeters` for each item
+  - `compensation` — sort by compensation descending
+- `search` - simple case-insensitive substring search against the event `name`.
+- `requirements` - comma-separated list (e.g. `requirements=mic,stage`). Matches events that include all listed requirements (matching is performed against lowercased requirement entries).
+- `equipmentProvided` - comma-separated list (e.g. `equipmentProvided=PA,lighting`). Matches events that include all listed equipment (matching is performed against lowercased equipment entries).
+- `startDate` / `endDate` - ISO8601 dates to filter events whose `eventDate.start` falls within the provided range.
+
+Notes:
+
+- Filters are ANDed together. For example `requirements=mic&equipmentProvided=PA&sortStrategy=compensation` returns events that match both conditions and are sorted by compensation.
+- `nearest` requires the authenticated user to have `user.location.coordinates` available; otherwise the server falls back to `timePosted`.
+
+Example requests:
+
+`GET /api/events` (most recent first)
+
+`GET /api/events?startDate=2025-12-01T00:00:00.000Z&endDate=2025-12-31T23:59:59.999Z&sortStrategy=compensation`
+
+`GET /api/events?requirements=mic,stage&sortStrategy=nearest` (authenticated user required)
+
+Example successful response (truncated):
+
+```json
+{
+  "events": [
+    {
+      "_id": "6910abcd1234ef567890ab12",
+      "name": "Neighborhood Block Party",
+      "eventDate": { "start": "2025-12-01T18:00:00.000Z", "end": "2025-12-01T22:00:00.000Z" },
+      "location": { "city": "Atlanta", "state": "Georgia", "country": "USA", "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] } },
+      "compensation": 150,
+      "distanceMeters": 432.21,
+      "createdAt": "2025-11-26T12:00:00.000Z"
+    }
+  ]
+}
+```
+
 ## A/B testing: explore default sort (frontend integration)
 
 High-level behavior
