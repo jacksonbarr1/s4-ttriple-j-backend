@@ -23,7 +23,7 @@ const authenticate = async (req, res, next) => {
 
     return next();
   } catch (error) {
-    return next(new Error("Invalid or expired authentication token"));
+    return next(new Error("Invalid or expired authentication token: " + error.message));
   }
 };
 
