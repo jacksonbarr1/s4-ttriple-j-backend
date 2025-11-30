@@ -135,11 +135,11 @@ const getBookingRequestById = async (req, res, next) => {
     const request = await BookingRequest.findById(id)
       .populate({
         path: "sender",
-        model: (doc) => (doc.senderType === "Band" ? "Band" : "Event"),
+        refPath: "senderType",
       })
       .populate({
         path: "receiver",
-        model: (doc) => (doc.receiverType === "Band" ? "Band" : "Event"),
+        refPath: "receiverType",
       })
       .populate("initiatedBy", "username email phone location")
       .exec();
