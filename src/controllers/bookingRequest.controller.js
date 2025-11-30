@@ -165,11 +165,9 @@ const getBookingRequestById = async (req, res, next) => {
       return res.status(403).json({ error: "Unauthorized to view this request" });
     }
 
-    // Only show contact info if status is Approved, or if user is the initiator
-    const senderContactInfo = {
-      email: request.initiatedBy.email,
-      phone: request.initiatedBy.phone,
-    };
+    // Only show contact info if status is Approved
+    const senderContactInfo = request.status === "Approved" ? request.sender.contactInfo : undefined;
+    const receiverContactInfo = request.status === "Approved" ? request.receiver.contactInfo : undefined;
 
     const responseData = {
       request: {
@@ -179,13 +177,14 @@ const getBookingRequestById = async (req, res, next) => {
           name: request.sender.name,
           type: request.senderType,
           location: request.sender.location,
-          ...(request.status === "Approved" && { contact: senderContactInfo }),
+          ...(senderContactInfo && { contact: senderContactInfo }),
         },
         receiver: {
           _id: request.receiver._id,
           name: request.receiver.name,
           type: request.receiverType,
           location: request.receiver.location,
+          ...(receiverContactInfo && { contact: receiverContactInfo }),
         },
         message: request.message,
         status: request.status,
