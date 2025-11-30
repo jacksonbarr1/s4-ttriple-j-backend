@@ -46,6 +46,14 @@ router.get(
   validate,
   bandController.listBands,
 );
+
+router.get(
+  "/me",
+  authenticate,
+  [],
+  validate,
+  bandController.getMyBands,
+);
 //
 // router.get(
 //   "/:id",

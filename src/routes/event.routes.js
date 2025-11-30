@@ -50,6 +50,14 @@ router.get(
 );
 
 router.get(
+  "/me",
+  authenticate,
+  [],
+  validate,
+  eventController.getMyEvents,
+);
+
+router.get(
   "/:id",
   authenticate,
   [param("id").isMongoId()],
