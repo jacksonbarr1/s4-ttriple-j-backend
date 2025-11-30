@@ -221,7 +221,11 @@ const updateBookingRequestStatus = async (req, res, next) => {
       .findById(request.receiver)
       .exec();
 
-    if (!receiverEntity.owner.equals(userId)) {
+    if (!receiverEntity) {
+      return res.status(404).json({ error: `${request.receiverType} not found` });
+    }
+
+    if (!receiverEntity.owner || !receiverEntity.owner.equals(userId)) {
       return res.status(403).json({ error: "Only the receiver can approve or deny this request" });
     }
 
