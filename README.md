@@ -307,6 +307,32 @@ Example successful response:
 }
 ```
 
+### Get My Bands
+
+- Retrieve all bands owned by the authenticated user.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`GET /api/bands/me`
+
+Example successful response:
+
+```json
+{
+  "bands": [
+    {
+      "_id": "690fe00360c6a023bb73a082",
+      "name": "Jackson's band",
+      "description": "A great band",
+      "location": { "city": "Atlanta", "state": "Georgia", "country": "USA", "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] } },
+      "experienceLevel": "intermediate",
+      "owner": "690f9e14bfc6722f29a5f684",
+      "createdAt": "2025-11-09T00:27:47.771Z",
+      "updatedAt": "2025-11-09T00:27:47.771Z"
+    }
+  ]
+}
+```
+
 ## Events
 ### Create Event
 
@@ -405,6 +431,32 @@ Example successful response (truncated):
       "compensation": 150,
       "distanceMeters": 432.21,
       "createdAt": "2025-11-26T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Get My Events
+
+- Retrieve all events owned by the authenticated user.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`GET /api/events/me`
+
+Example successful response:
+
+```json
+{
+  "events": [
+    {
+      "_id": "6910abcd1234ef567890ab12",
+      "name": "Neighborhood Block Party",
+      "description": "An evening of live music and food",
+      "location": { "city": "Atlanta", "state": "Georgia", "country": "USA", "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] } },
+      "compensation": 150,
+      "owner": "690f9e14bfc6722f29a5f684",
+      "createdAt": "2025-11-26T12:00:00.000Z",
+      "updatedAt": "2025-11-26T12:00:00.000Z"
     }
   ]
 }

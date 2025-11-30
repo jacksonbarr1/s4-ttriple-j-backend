@@ -156,7 +156,18 @@ const listBands = async (req, res, next) => {
   }
 };
 
+const getMyBands = async (req, res, next) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const bands = await Band.find({ owner: userId }).sort({ createdAt: -1 }).exec();
+    res.json({ bands });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createBand,
   listBands,
+  getMyBands,
 };

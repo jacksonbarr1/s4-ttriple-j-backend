@@ -129,9 +129,20 @@ const getEventById = async (req, res, next) => {
   }
 };
 
+const getMyEvents = async (req, res, next) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const events = await Event.find({ owner: userId }).sort({ createdAt: -1 }).exec();
+    res.json({ events });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createEvent,
   listEvents,
   getEventById,
+  getMyEvents,
 };
 
