@@ -47,6 +47,11 @@ const eventSchema = new mongoose.Schema(
     requirements: { type: [String], default: [] },
     equipmentProvided: { type: [String], default: [] },
     contactInfo: { type: contactInfoSchema, required: true },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   {
     timestamps: true,
