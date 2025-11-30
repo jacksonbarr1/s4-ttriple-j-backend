@@ -410,6 +410,231 @@ Example successful response (truncated):
 }
 ```
 
+## Booking Requests
+
+Booking requests enable bands and events to request bookings from each other. A user can initiate a request on behalf of their band or event, and the recipient can approve, deny, or the sender can cancel.
+
+### Create Booking Request
+
+- Submit a booking request from one entity (band or event) to another.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+`POST /api/requests`
+
+Expected Request Structure:
+```json
+{
+  "senderId": "690fe00360c6a023bb73a082",
+  "senderType": "Band",
+  "receiverId": "6910abcd1234ef567890ab12",
+  "receiverType": "Event",
+  "message": "We're very interested in performing at your event!"
+}
+```
+
+- Required fields:
+  - `senderId` — MongoDB ObjectId of the sending band or event
+  - `senderType` — `Band` or `Event`
+  - `receiverId` — MongoDB ObjectId of the receiving band or event
+  - `receiverType` — `Band` or `Event`
+- Optional fields:
+  - `message` — optional message from the requester
+
+Expected response structure:
+```json
+{
+  "request": {
+    "_id": "6910xyz1234567890abcdef",
+    "sender": "690fe00360c6a023bb73a082",
+    "senderType": "Band",
+    "receiver": "6910abcd1234ef567890ab12",
+    "receiverType": "Event",
+    "initiatedBy": "690f9e14bfc6722f29a5f684",
+    "message": "We're very interested in performing at your event!",
+    "status": "Pending",
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T10:00:00.000Z"
+  }
+}
+```
+
+### List Booking Requests
+
+- Retrieve sent or received booking requests for the authenticated user.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`GET /api/requests?type=sent` (sent requests) or `GET /api/requests?type=received` (received requests)
+
+Query parameters:
+
+- `type` - `sent` or `received` (required). `sent` returns requests initiated by the user's bands/events. `received` returns requests sent to the user's bands/events.
+
+Example requests:
+
+`GET /api/requests?type=sent`
+
+`GET /api/requests?type=received`
+
+Example successful response (truncated):
+
+```json
+{
+  "requests": [
+    {
+      "_id": "6910xyz1234567890abcdef",
+      "username": "bandmember",
+      "location": "Atlanta",
+      "bandName": "Jackson's band",
+      "dateSent": "2025-11-30T10:00:00.000Z",
+      "status": "Pending",
+      "senderId": "690fe00360c6a023bb73a082",
+      "senderType": "Band",
+      "receiverId": "6910abcd1234ef567890ab12",
+      "receiverType": "Event",
+      "message": "We're very interested in performing at your event!"
+    }
+  ]
+}
+```
+
+### Get Booking Request Details
+
+- Retrieve full details of a specific booking request. Contact information is only visible if the request is approved or if you are the sender.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`GET /api/requests/:id`
+
+Path parameters:
+
+- `id` - MongoDB ObjectId of the booking request
+
+Example request:
+
+`GET /api/requests/6910xyz1234567890abcdef`
+
+Example successful response (when status is Pending, before acceptance):
+
+```json
+{
+  "request": {
+    "_id": "6910xyz1234567890abcdef",
+    "sender": {
+      "_id": "690fe00360c6a023bb73a082",
+      "name": "Jackson's band",
+      "type": "Band",
+      "location": {
+        "city": "Atlanta",
+        "state": "Georgia",
+        "country": "USA",
+        "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] }
+      }
+    },
+    "receiver": {
+      "_id": "6910abcd1234ef567890ab12",
+      "name": "Neighborhood Block Party",
+      "type": "Event",
+      "location": {
+        "city": "Atlanta",
+        "state": "Georgia",
+        "country": "USA",
+        "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] }
+      }
+    },
+    "message": "We're very interested in performing at your event!",
+    "status": "Pending",
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T10:00:00.000Z"
+  }
+}
+```
+
+Example response (when status is Approved, contact info is visible):
+
+```json
+{
+  "request": {
+    "_id": "6910xyz1234567890abcdef",
+    "sender": {
+      "_id": "690fe00360c6a023bb73a082",
+      "name": "Jackson's band",
+      "type": "Band",
+      "location": { "city": "Atlanta", "state": "Georgia", "country": "USA", "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] } },
+      "contact": {
+        "email": "jacksonbarr2021@gmail.com",
+        "phone": "770-377-5434"
+      }
+    },
+    "receiver": {
+      "_id": "6910abcd1234ef567890ab12",
+      "name": "Neighborhood Block Party",
+      "type": "Event",
+      "location": { "city": "Atlanta", "state": "Georgia", "country": "USA", "coordinates": { "type": "Point", "coordinates": [ -84.3898151, 33.7544657 ] } }
+    },
+    "message": "We're very interested in performing at your event!",
+    "status": "Approved",
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T10:30:00.000Z"
+  }
+}
+```
+
+### Update Booking Request Status
+
+- Accept or deny a booking request. Only the recipient (owner of the receiving entity) can approve or deny.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`PATCH /api/requests/:id`
+
+Path parameters:
+
+- `id` - MongoDB ObjectId of the booking request
+
+Expected Request Structure:
+```json
+{
+  "status": "Approved"
+}
+```
+
+- `status` — `Approved` or `Denied` (required)
+
+Example successful response:
+
+```json
+{
+  "request": {
+    "_id": "6910xyz1234567890abcdef",
+    "sender": "690fe00360c6a023bb73a082",
+    "senderType": "Band",
+    "receiver": "6910abcd1234ef567890ab12",
+    "receiverType": "Event",
+    "initiatedBy": "690f9e14bfc6722f29a5f684",
+    "message": "We're very interested in performing at your event!",
+    "status": "Approved",
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T10:30:00.000Z"
+  }
+}
+```
+
+### Cancel Booking Request
+
+- Cancel a booking request. Only the sender can cancel.
+- Requires JWT in HTTP Header -> `"Bearer: <JWT>"`
+
+`DELETE /api/requests/:id`
+
+Path parameters:
+
+- `id` - MongoDB ObjectId of the booking request
+
+Example successful response:
+
+```json
+{
+  "message": "Booking request cancelled"
+}
+```
+
 ## A/B testing: explore default sort (frontend integration)
 
 High-level behavior
